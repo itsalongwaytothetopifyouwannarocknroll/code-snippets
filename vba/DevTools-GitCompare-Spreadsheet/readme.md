@@ -18,7 +18,8 @@ https://github.com/ZoomerAnalytics/git-spreadsheetcompare
 .attributes
 
 ```
-*.xls* diff=excel
+*.xls diff=excel
+*.xls[bmx] diff=excel
 ```
 
 ## GIT Ignore
@@ -27,7 +28,6 @@ https://github.com/ZoomerAnalytics/git-spreadsheetcompare
 ```
 # ignore temporary excel files
 ~$*
-*.laccdb
 *.tmp
 ```
 
@@ -40,3 +40,6 @@ Default location for Office 2014 x64:
 ```
 C:\Program Files (x86)\Microsoft Office\Office15\DCF\SPREADSHEETCOMPARE.EXE"
 ```
+
+# Notes
+For better experiance with [GitExtentions](https://github.com/gitextensions/gitextensions) setting __Detailed__>__Diff Viewer__ should turned off
