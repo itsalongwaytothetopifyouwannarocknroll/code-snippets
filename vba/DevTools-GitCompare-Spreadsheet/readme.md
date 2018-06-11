@@ -1,8 +1,9 @@
 # GIT DevTools for Excel Spreadsheets
-Module wich helps visual source controlling of file content. Use default for MS Office >2014 tool [__Spreadsheet Compare__] (https://support.office.com/en-us/article/Overview-of-Spreadsheet-Compare-13fafa61-62aa-451b-8674-242ce5f2c986)
+Module wich helps visual source controlling of file content. Use default for MS Office >2014 tool [__Spreadsheet Compare__](https://support.office.com/en-us/article/Overview-of-Spreadsheet-Compare-13fafa61-62aa-451b-8674-242ce5f2c986)
 
 ## Origin article
 https://www.xltrail.com/blog/git-diff-spreadsheetcompare
+
 https://github.com/ZoomerAnalytics/git-spreadsheetcompare
 
 ## GIT Config
@@ -30,9 +31,12 @@ https://github.com/ZoomerAnalytics/git-spreadsheetcompare
 *.tmp
 ```
 
-## BAT file
+## Script file
 File __xldiff.bat__ included.
 
 ### MS Spreadsheet Compare
+Default location for Office 2014 x64: 
 
-Default location for Office 2014 x64: "C:\Program Files (x86)\Microsoft Office\Office15\DCF\SPREADSHEETCOMPARE.EXE"
+```
+C:\Program Files (x86)\Microsoft Office\Office15\DCF\SPREADSHEETCOMPARE.EXE"
+```
