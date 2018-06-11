@@ -1,0 +1,59 @@
+Private Sub getDebugInfo()
+'language references:
+'https://www.rondebruin.nl/win/s9/win012.htm
+'microsoft.com
+On Error Resume Next
+Debug.Print "Debug INFO -------------------------------------"
+Debug.Print " -- Application.Version: " & Application.Version & ", build:" & Application.Build
+Debug.Print " -- Application.Path: " & Application.Path
+Debug.Print " -- Application.ThousandSeparator: " & Application.ThousandsSeparator
+Debug.Print " -- Application.DecimalSeparator: " & Application.DecimalSeparator
+Debug.Print " - Application UI Language: " & Application.LanguageSettings.LanguageID(msoLanguageIDUI)
+
+Debug.Print " -- xl24HourClock:" & Application.International(xl24HourClock) & _
+    " | xl4DigitYears:" & Application.International(xl4DigitYears) & _
+    " | xlAlternateArraySeparator:" & Application.International(xlAlternateArraySeparator)
+Debug.Print " -- xlColumnSeparator:" & Application.International(xlColumnSeparator) & _
+    " | xlCountryCode:" & Application.International(xlCountryCode) & _
+    " | xlCountrySetting:" & Application.International(xlCountrySetting)
+Debug.Print " -- xlCurrencyBefore:" & Application.International(xlCurrencyBefore) & _
+    " | xlCurrencyCode:" & Application.International(xlCurrencyCode) & _
+    " | xlCurrencyDigits:" & Application.International(xlCurrencyDigits)
+Debug.Print " -- xlCurrencyLeadingZeros:" & Application.International(xlCurrencyLeadingZeros) & _
+    " | xlCurrencyMinusSign:" & Application.International(xlCurrencyMinusSign) & _
+    " | xlCurrencyNegative:" & Application.International(xlCurrencyNegative)
+Debug.Print " -- xlCurrencySpaceBefore:" & Application.International(xlCurrencySpaceBefore) & _
+    " | xlCurrencyTrailingZeros:" & Application.International(xlCurrencyTrailingZeros) & _
+    " | xlDateOrder:" & Application.International(xlDateOrder)
+Debug.Print " -- xlDateSeparator:" & Application.International(xlDateSeparator) & _
+    " | xlDayCode:" & Application.International(xlDayCode) & _
+    " | xlDayLeadingZero:" & Application.International(xlDayLeadingZero)
+Debug.Print " -- xlDecimalSeparator:" & Application.International(xlDecimalSeparator) & _
+    " | xlGeneralFormatName:" & Application.International(xlGeneralFormatName) & _
+    " | xlHourCode:" & Application.International(xlHourCode)
+Debug.Print " -- xlLeftBrace:" & Application.International(xlLeftBrace) & _
+    " | xlLeftBracket:" & Application.International(xlLeftBracket) & _
+    " | xlListSeparator:" & Application.International(xlListSeparator)
+Debug.Print " -- xlLowerCaseColumnLetter:" & Application.International(xlLowerCaseColumnLetter) & _
+    " | xlLowerCaseRowLetter:" & Application.International(xlLowerCaseRowLetter) & _
+    " | xlMDY:" & Application.International(xlMDY)
+Debug.Print " -- xlMetric:" & Application.International(xlMetric) & _
+    " | xlMinuteCode:" & Application.International(xlMinuteCode) & _
+    " | xlMonthCode:" & Application.International(xlMonthCode)
+Debug.Print " -- xlMonthLeadingZero:" & Application.International(xlMonthLeadingZero) & _
+    " | xlMonthNameChars:" & Application.International(xlMonthNameChars) & _
+    " | xlNoncurrencyDigits:" & Application.International(xlNoncurrencyDigits)
+Debug.Print " -- xlNonEnglishFunctions:" & Application.International(xlNonEnglishFunctions) & _
+    " | xlRightBrace:" & Application.International(xlRightBrace) & _
+    " | xlRightBracket:" & Application.International(xlRightBracket)
+Debug.Print " -- xlRowSeparator:" & Application.International(xlRowSeparator) & _
+    " | xlSecondCode:" & Application.International(xlSecondCode) & _
+    " | xlThousandsSeparator:" & Application.International(xlThousandsSeparator)
+Debug.Print " -- xlTimeLeadingZero:" & Application.International(xlTimeLeadingZero) & _
+    " | xlTimeSeparator:" & Application.International(xlTimeSeparator) & _
+    " | xlUpperCaseColumnLetter:" & Application.International(xlUpperCaseColumnLetter)
+Debug.Print " -- xlUpperCaseRowLetter:" & Application.International(xlUpperCaseRowLetter) & _
+    " | xlWeekdayNameChars:" & Application.International(xlWeekdayNameChars) & _
+    " | xlYearCode:" & Application.International(xlYearCode)
+On Error GoTo 0
+End Sub
