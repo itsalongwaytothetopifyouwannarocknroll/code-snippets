@@ -1,0 +1,117 @@
+'--------------------------------
+' DevTools v1.2
+' by Vicheslav Zudenkov aka brazil <Vicheslav.Zudenkov@ua.imptob.com>,<threequarksformustermark@ukr.net>
+' References:
+'   - Microsoft Visual Basic for Applications Extensibility 5.3
+'   - Microsoft Scripting Runtime
+'
+' Module name = DevTools
+'
+' Main function:
+'   - ExportSourceFiles
+'   - ImportSourceFiles
+'
+' v1.2:
+'  - added ClearImmediateWindow function
+' v1.1:
+'  - changed visibilty of functions
+' v1.0:
+'  - added main function
+'--------------------------------
+
+Public Function ExportSourceFiles()
+ 
+    Dim component As VBComponent
+    Dim fso As New Scripting.FileSystemObject
+
+    If Not fso.FolderExists(fullPath) Then
+        'If Dir(fullPath, vbDirectory) = "" Then
+        fso.CreateFolder fullPath
+    End If
+
+    For Each component In Application.VBE.ActiveVBProject.VBComponents
+        If Not component.Name = "DevTools" And (component.Type = vbext_ct_ClassModule Or _
+                                                component.Type = vbext_ct_StdModule Or _
+                                                component.Type = vbext_ct_MSForm) Then
+            component.Export workDir & projectName & "\" & component.Name & ToFileExtension(component.Type)
+        End If
+    Next
+    MsgBox "Done!"
+End Function
+
+Public Function ImportSourceFiles()
+    Dim i As Integer
+    Dim fso As New Scripting.FileSystemObject
+    If fso.FolderExists(fullPath) Then
+        'If Dir(fullPath, vbDirectory) <> "" Then
+        RemoveAllModules
+        Import
+        MsgBox "Done"
+    Else
+        MsgBox "source files not found!"
+    End If
+
+End Function
+
+'-------------------------------
+
+Function projectName() As String
+    'projectName = Application.VBE.ActiveVBProject.Name
+    'projectName = ThisWorkbook.Name
+    Dim fso As New Scripting.FileSystemObject
+    projectName = fso.GetBaseName(ThisWorkbook.Name)
+End Function
+
+Function workDir() As String
+    workDir = ThisWorkbook.Path & "\"
+End Function
+
+Function fullPath() As String
+    fullPath = workDir & projectName
+End Function
+
+Private Sub Import()
+    Dim file As String
+    file = Dir(workDir)
+    While (file <> vbNullString)
+        If Right(file, 3) <> "frx" Then
+            Application.VBE.ActiveVBProject.VBComponents.Import workDir & projectName & "\" & file
+        End If
+        file = Dir
+    Wend
+End Sub
+
+Private Sub RemoveAllModules()
+    Dim project As VBProject
+    Set project = Application.VBE.ActiveVBProject
+ 
+    Dim comp As VBComponent
+    For Each comp In project.VBComponents
+        If Not comp.Name = "DevTools" And (comp.Type = vbext_ct_ClassModule Or _
+                                           comp.Type = vbext_ct_StdModule Or _
+                                           comp.Type = vbext_ct_MSForm) Then
+            project.VBComponents.Remove comp
+        End If
+    Next
+End Sub
+
+Private Function ToFileExtension(vbeComponentType As vbext_ComponentType) As String
+    Select Case vbeComponentType
+    Case vbext_ComponentType.vbext_ct_ClassModule
+        ToFileExtension = ".cls"
+    Case vbext_ComponentType.vbext_ct_StdModule
+        ToFileExtension = ".bas"
+    Case vbext_ComponentType.vbext_ct_MSForm
+        ToFileExtension = ".frm"
+    Case vbext_ComponentType.vbext_ct_ActiveXDesigner
+    Case vbext_ComponentType.vbext_ct_Document
+    Case Else
+        ToFileExtension = vbNullString
+    End Select
+ 
+End Function
+
+
+Public Function ClearImmediateWindow()
+Debug.Print String(255, vbNewLine)
+End Function
