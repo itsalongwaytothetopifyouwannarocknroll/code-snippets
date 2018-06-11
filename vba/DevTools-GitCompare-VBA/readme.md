@@ -1,4 +1,4 @@
-# DevTools for GIT
+# GIT DevTools for VBA
 Module wich helps visual source controlling of VBA code. Export and Import (not tested) code from VBA project module.
 
 ### Module name should be "DevTools".
