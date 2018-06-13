@@ -1,0 +1,193 @@
+Option Compare Database
+'--------------------------------
+'
+' References:
+'   - Microsoft VBScript regular expressions 5.5
+'
+' Main function:
+'   - IPv4StrToBin
+'   - IPv4BinToStr
+'	- IPv6StrToBin
+'	- IPv6BinToStr
+'	- IPv4isValidStr
+'	- IPv6isValidStr
+'	- IPv4isValidBin
+'	- IPv6isValidBin
+'
+' v1.0:
+'  - added main function
+'--------------------------------
+Public Enum IPversions
+ IPv4 = 0
+ IPv6 = 1
+End Enum
+
+Public Function IPv4StrToBin(str As String) As Byte()
+Dim tmpB(3) As Byte
+mask = &HFF
+tmpS = Split(str, ".")
+For i = 0 To 3
+   tmpB(i) = Int(tmpS(i)) And mask
+   'tmpB(i) = Int(tmpS(i))
+    'Debug.Print "tmpB(i):" & tmpB(i) & "/tmpS(i):" & tmpS(i)
+Next i
+IPv4StrToBin = tmpB
+End Function
+
+Public Function IPv4BinToStr(data() As Byte) As String
+Dim tmpStr As String
+For i = 0 To 3
+    tmpStr = tmpStr & data(i) & "."
+Next i
+tmpStr = Left(tmpStr, 15)
+IPv4BinToStr = tmpStr
+End Function
+
+Public Function IPv6StrToBin(str As String) As Byte()
+Dim actualB(15) As Byte
+Dim splitedS(7) As String
+Dim tmpS As Variant
+Dim skipedGroups As Integer
+Dim skiped As Boolean
+
+skipedGroups = 0
+mask = &HFF
+tmpS = Split(str, ":")
+If UBound(tmpS) < 7 Then skipedGroups = 7 - UBound(tmpS)
+
+'fill all 8 groups
+k = 0
+skiped = False
+For i = 0 To UBound(tmpS)
+    If tmpS(i) = "" And Not skiped Then
+        For j = 0 To skipedGroups
+            splitedS(j + k) = "0"
+        Next j
+        k = k + j
+        skiped = True
+    Else
+        If tmpS(i) = "" Then
+            splitedS(k) = "0"
+        Else
+            splitedS(k) = tmpS(i)
+        End If
+        k = k + 1
+    End If
+Next i
+
+'divide groups to bytes
+j = 0
+For i = 0 To 7
+    Select Case Len(splitedS(i)) > 2
+    Case False
+        actualB(j) = 0
+        actualB(j + 1) = Val("&h" & Right(splitedS(i), 2))
+    Case True
+        actualB(j) = Val("&h" & Left(splitedS(i), Len(splitedS(i)) - 2))
+        actualB(j + 1) = Val("&h" & Right(splitedS(i), 2))
+    End Select
+    j = j + 2
+Next i
+
+IPv6StrToBin = actualB
+End Function
+
+Public Function IPv6BinToStr(data() As Byte) As String
+Dim tmpStr As String
+Dim skipUsed As Boolean
+'skipUsed = False
+For i = 0 To 7
+    If data(i * 2) = 0 Then
+        tmpStr = tmpStr & Hex$(data(i * 2 + 1)) & ":"
+    Else
+        tmpStr = tmpStr & Hex$((data(i * 2)))
+        If Len(Hex$(data(i * 2 + 1))) < 2 Then
+            tmpStr = tmpStr & "0" & Hex$(data(i * 2 + 1)) & ":"
+        Else
+            tmpStr = tmpStr & Hex$(data(i * 2 + 1)) & ":"
+        End If
+    End If
+Next i
+tmpStr = Left(tmpStr, Len(tmpStr) - 1)
+IPv6BinToStr = tmpStr
+End Function
+
+Public Function IPv4isValidStr(str As String) As Boolean
+Dim tmpS As Variant
+tmpS = Split(str, ".")
+If UBound(tmpS) <> 3 Then
+    IPv4isValidStr = False
+    Exit Function
+End If
+For i = 0 To 3
+    If tmpS(i) < 0 Or tmpS(i) > 255 Then
+        IPv4isValidStr = False
+        Exit Function
+    End If
+Next i
+IPv4isValidStr = True
+End Function
+
+Public Function IPv4isValidBin(data As Variant) As Boolean
+If TypeName(data) <> "Byte()" Then
+    IPv4isValidBin = False
+    Exit Function
+End If
+If UBound(data) <> 3 Then
+    IPv4isValidBin = False
+    Exit Function
+End If
+For i = 0 To 3
+    If data(i) < 0 Or data(i) > 255 Then
+        IPv4isValidBin = False
+        Exit Function
+    End If
+Next i
+IPv4isValidBin = True
+End Function
+
+Public Function IPv6isValidBin(data As Variant) As Boolean
+If TypeName(data) <> "Byte()" Then
+    IPv6isValidBin = False
+    Exit Function
+End If
+If UBound(data) <> 15 Then
+    IPv6isValidBin = False
+    Exit Function
+End If
+For i = 0 To 15
+    If data(i) < 0 Or data(i) > 255 Then
+        IPv6isValidBin = False
+        Exit Function
+    End If
+Next i
+IPv6isValidBin = True
+End Function
+
+Public Function IPv6isValidStr(strIn As String) As Boolean
+'https://stackoverflow.com/questions/37921510/how-to-check-if-a-cell-contains-valid-ipv6-address
+    Dim objRegex As New RegExp
+    Dim strPattern As String
+
+    strPattern = "(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|"
+    strPattern = strPattern & "([0-9a-fA-F]{1,4}:){1,7}:|"
+    strPattern = strPattern & "([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|"
+    strPattern = strPattern & "([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|"
+    strPattern = strPattern & "([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|"
+    strPattern = strPattern & "([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|"
+    strPattern = strPattern & "([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|"
+    strPattern = strPattern & "[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|"
+    strPattern = strPattern & ":((:[0-9a-fA-F]{1,4}){1,7}|"
+    strPattern = strPattern & ":)|"
+    strPattern = strPattern & "fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|"
+    strPattern = strPattern & "::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|"
+    strPattern = strPattern & "(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|"
+    strPattern = strPattern & "1{0,1}[0-9]){0,1}[0-9])|"
+    strPattern = strPattern & "([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|"
+    strPattern = strPattern & "(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|"
+    strPattern = strPattern & "(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))"
+
+    objRegex.Pattern = strPattern
+    IPv6isValidStr = objRegex.test(strIn)
+
+End Function
