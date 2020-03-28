@@ -1,16 +1,18 @@
 '--------------------------------
-' DevTools v1.2
+' DevTools v1.3
 ' by Vicheslav Zudenkov aka brazil <Vicheslav.Zudenkov@ua.imptob.com>,<threequarksformustermark@ukr.net>
 ' References:
 '   - Microsoft Visual Basic for Applications Extensibility 5.3
 '   - Microsoft Scripting Runtime
 '
-' Module name = DevTools
-'
 ' Main function:
 '   - ExportSourceFiles
 '   - ImportSourceFiles
 '
+' v1.3:
+'  - add export of ExcelObjects (Worksheet and workbook modules)
+'  - add import of ExcelObjects
+'  - fix bug with importing modules
 ' v1.2:
 '  - added ClearImmediateWindow function
 ' v1.1:
@@ -18,6 +20,12 @@
 ' v1.0:
 '  - added main function
 '--------------------------------
+
+
+Enum ExcelObjectsType
+    xlo_Workbook
+    xlo_Worksheet
+End Enum
 
 Public Function ExportSourceFiles()
  
@@ -30,13 +38,34 @@ Public Function ExportSourceFiles()
     End If
 
     For Each component In Application.VBE.ActiveVBProject.VBComponents
-        If Not component.Name = "DevTools" And (component.Type = vbext_ct_ClassModule Or _
+        If Not component.name = "DevTools" And (component.Type = vbext_ct_ClassModule Or _
                                                 component.Type = vbext_ct_StdModule Or _
                                                 component.Type = vbext_ct_MSForm) Then
-            component.Export workDir & projectName & "\" & component.Name & ToFileExtension(component.Type)
+            component.Export fullPath & "\" & component.name & ToFileExtension(component.Type)
+        ElseIf component.Type = vbext_ct_Document Then
+            
+            If component.CodeModule.CountOfLines > 0 And component.CodeModule.CountOfLines > component.CodeModule.CountOfDeclarationLines Then
+            If Not fso.FolderExists(fullPathExcelObjects) Then
+                'If Dir(fullPath, vbDirectory) = "" Then
+                fso.CreateFolder fullPathExcelObjects
+            End If
+            
+            WriteToFile fullPathExcelObjects & "\" & component.name & ToFileExtenstionXObject(GetExcelObjectType(component.name)), _
+                component.CodeModule.Lines(1, component.CodeModule.CountOfLines)
+            
+            End If
         End If
     Next
     MsgBox "Done!"
+End Function
+
+Function WriteToFile(filePath As String, content As String)
+    Dim fso As Scripting.FileSystemObject
+    Dim ts As TextStream
+    Set fso = New FileSystemObject
+    Set ts = fso.CreateTextFile(filePath, True)
+    ts.WriteLine content
+    ts.Close
 End Function
 
 Public Function ImportSourceFiles()
@@ -55,11 +84,25 @@ End Function
 
 '-------------------------------
 
+
+Function GetExcelObjectType(name As String) As ExcelObjectsType
+Dim wks As Variant
+For Each wks In ThisWorkbook.Worksheets
+    If wks.CodeName = name Then
+        GetExcelObjectType = xlo_Worksheet
+        Exit Function
+    End If
+Next wks
+
+GetExcelObjectType = xlo_Workbook
+End Function
+
+
 Function projectName() As String
     'projectName = Application.VBE.ActiveVBProject.Name
     'projectName = ThisWorkbook.Name
     Dim fso As New Scripting.FileSystemObject
-    projectName = fso.GetBaseName(ThisWorkbook.Name)
+    projectName = fso.GetBaseName(ThisWorkbook.name)
 End Function
 
 Function workDir() As String
@@ -70,16 +113,61 @@ Function fullPath() As String
     fullPath = workDir & projectName
 End Function
 
+Function fullPathExcelObjects()
+    fullPathExcelObjects = fullPath & "\ExcelObjects"
+End Function
+
 Private Sub Import()
-    Dim file As String
-    file = Dir(workDir)
+    Dim file As String, fileName As String
+    Dim fso As New Scripting.FileSystemObject
+    
+    file = Dir(fullPath & "\")
     While (file <> vbNullString)
         If Right(file, 3) <> "frx" Then
-            Application.VBE.ActiveVBProject.VBComponents.Import workDir & projectName & "\" & file
+            Application.VBE.ActiveVBProject.VBComponents.Import fullPath & "\" & file
         End If
         file = Dir
     Wend
+    
+    
+    If fso.FolderExists(fullPathExcelObjects) Then
+        file = Dir(fullPathExcelObjects & "\")
+        While (file <> vbNullString)
+            fileName = Left(file, Len(file) - 6)
+            If IsXObjectFileExtention(file) Then
+                If Not FindExcelObjectAndImport(fileName, file, fullPathExcelObjects) Then
+                    Select Case FromFileExtenstionXObject(fileName)
+                    Case xlo_Workbook
+                        FindExcelObjectAndImport ThisWorkbook.CodeName, file, fullPathExcelObjects
+                    Case xlo_Worksheet
+                        ThisWorkbook.Worksheets.Add fileName
+                        FindExcelObjectAndImport fileName, file, fullPathExcelObjects
+                    End Select
+                    'Application.VBE.ActiveVBProject.VBComponents.Import fullPathExcelObjects & "\" & file
+                End If
+            End If
+            file = Dir
+        Wend
+    End If
+    
+    
 End Sub
+
+Private Function FindExcelObjectAndImport(name As String, file As String, basePath As String) As Boolean
+Dim component As VBComponent
+Dim module As CodeModule
+Dim componentFounded As Boolean
+    
+componentFounded = False
+For Each component In Application.VBE.ActiveVBProject.VBComponents
+    If component.name = name Then
+        Set module = component.CodeModule
+        module.DeleteLines 1, module.CountOfLines
+        module.AddFromFile fullPathExcelObjects & "\" & file
+        componentFounded = True
+    End If
+Next component
+End Function
 
 Private Sub RemoveAllModules()
     Dim project As VBProject
@@ -87,7 +175,7 @@ Private Sub RemoveAllModules()
  
     Dim comp As VBComponent
     For Each comp In project.VBComponents
-        If Not comp.Name = "DevTools" And (comp.Type = vbext_ct_ClassModule Or _
+        If Not comp.name = "DevTools" And (comp.Type = vbext_ct_ClassModule Or _
                                            comp.Type = vbext_ct_StdModule Or _
                                            comp.Type = vbext_ct_MSForm) Then
             project.VBComponents.Remove comp
@@ -111,6 +199,32 @@ Private Function ToFileExtension(vbeComponentType As vbext_ComponentType) As Str
  
 End Function
 
+Private Function ToFileExtenstionXObject(objType As ExcelObjectsType) As String
+Select Case objType
+Case xlo_Workbook
+    ToFileExtenstionXObject = ".xlowb"
+Case xlo_Worksheet
+    ToFileExtenstionXObject = ".xlows"
+End Select
+End Function
+
+Private Function FromFileExtenstionXObject(fileName As String) As ExcelObjectsType
+Dim ext As String
+
+ext = Right(fileName, 5)
+Select Case ext
+Case "xlowb"
+    FromFileExtenstionXObject = xlo_Workbook
+Case "xlows"
+    FromFileExtenstionXObject = xlo_Worksheet
+End Select
+End Function
+
+Private Function IsXObjectFileExtention(fileName As String) As Boolean
+Dim ext As String
+ext = Right(fileName, 5)
+IsXObjectFileExtention = (ext = "xlowb" Or ext = "xlows")
+End Function
 
 Public Function ClearImmediateWindow()
 Debug.Print String(255, vbNewLine)
